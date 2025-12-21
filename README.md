@@ -1,6 +1,6 @@
 # mp-cool-lex-java
 
-The Cool-lex order for multiset permutations, along with an associated algorithm, was invented by Aaron Williams
+The Cool-lex order and associated algorithms for multiset permutations were invented by Aaron Williams
 (<https://www.researchgate.net/profile/Aaron-Williams>).
 
 The [publication](https://epubs.siam.org/doi/pdf/10.1137/1.9781611973068.107) is copyrighted
