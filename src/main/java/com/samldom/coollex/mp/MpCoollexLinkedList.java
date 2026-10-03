@@ -186,41 +186,48 @@ public class MpCoollexLinkedList {
   }
 
   /**
-   * Returns an iterator of the generated permutations of the specified multiset.
+   * Generates multiset permutations. The generation is lazy and governed by invoking the iterators'
+   * {@code next()} method. The generation order is as in Section 3, Algorithms, p. 992. This order
+   * differs from Cool-lex in that the Cool-lex' last permutation is generated first.
    *
-   * <p>The permutations of the multiset {@code {"A", "B", "A"} } are:
+   * <p>In other words, applying a circular shift by one position to the left to this method's
+   * generation order yields the Cool-lex order.
    *
-   * <pre>
-   *  BAA
-   *  ABA
-   *  AAB
-   * </pre>
+   * <p>The permutations of the multiset {@code {"A", "B", "A"} } are then:
    *
-   * <p>The permutations of the multiset {@code {1, 2, 3, 2} } are:
+   * <table border=1>
+   * <tr><th>Cool-lex<th>This method's generation order
+   * <tr><td>ABA<td>BAA
+   * <tr><td>AAB<td>ABA
+   * <tr><td>BAA<td>AAB
+   * </table>
    *
-   * <pre>
-   *  3221
-   *  1322
-   *  3122
-   *  2312
-   *  1232
-   *  2132
-   *  3212
-   *  2321
-   *  2231
-   *  1223
-   *  2123
-   *  2213
-   * </pre>
+   * <p>The permutations of the multiset {@code {1, 2, 3, 2} } are then:
    *
-   * @param elements the multiset to permute. It will not be modified by this method.
+   * <table border=1>
+   * <tr><th>Cool-lex<th>This method's generation order
+   * <tr><td>1322<td>3221
+   * <tr><td>3122<td>1322
+   * <tr><td>2312<td>3122
+   * <tr><td>1232<td>2312
+   * <tr><td>2132<td>1232
+   * <tr><td>3212<td>2132
+   * <tr><td>2321<td>3212
+   * <tr><td>2231<td>2321
+   * <tr><td>1223<td>2231
+   * <tr><td>2123<td>1223
+   * <tr><td>2213<td>2123
+   * <tr><td>3221<td>2213
+   * </table>
+   *
+   * @param multiset to permute. <strong>Note</strong>: it may be modified by this method.
    * @return an empty iterator if the specified multiset is empty; the generated permutations
    *     otherwise.
    */
   public static <T extends Comparable<? super T>> Iterator<Iterator<T>> multisetPermutations(
-      T[] elements) {
-    return elements.length == 0
+      T[] multiset) {
+    return multiset.length == 0
         ? Collections.emptyIterator()
-        : new MultisetPermutationsIterator<>(new Algorithm<>(elements));
+        : new MultisetPermutationsIterator<>(new Algorithm<>(multiset));
   }
 }
