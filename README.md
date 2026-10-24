@@ -29,6 +29,8 @@ eprint = {https://epubs.siam.org/doi/pdf/10.1137/1.9781611973068.107},
 
 ## Examples
 
+If `java.util.Iterator` is preferred:
+
 ```java
  Integer[] multiset = {1, 5, 1};
  MpCoollexLinkedList.multisetPermutations(multiset)
@@ -44,8 +46,34 @@ eprint = {https://epubs.siam.org/doi/pdf/10.1137/1.9781611973068.107},
 
 ```
 
+If `java.util.Spliterator` is preferred:
+
+```java
+Integer[] multiset = {1, 5, 1};
+MpCoollexLinkedList.multisetPermutationsSpliterator(multiset, multinomialCoeff->-1L)
+    .forEachRemaining(
+        permutation -> {
+          permutation.forEachRemaining(System.out::print);
+          System.out.println();
+        });
+```
+
+Finally, [Golang-style](https://pkg.go.dev/iter) iterators:
+
+```java
+Integer[] multiset = {1, 5, 1};
+MpCoollexLinkedList.multisetPermutationsSeq(multiset)
+    .forEach(
+        permutation -> {
+          permutation.forEach(System.out::print);
+          System.out.println();
+        });
+```
+
 ## Dependencies
 
 Java 8.
 
 Tests: JUnit 5.
+
+No additional dependencies.

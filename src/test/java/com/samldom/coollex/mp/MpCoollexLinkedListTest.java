@@ -1,3 +1,16 @@
+/**
+ * Copyright 2026 The MP-Cool-lex-Java Contributors, see the CONTRIBUTORS file.
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.samldom.coollex.mp;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -18,6 +31,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.samldom.util.iter.Seq;
+
 class MpCoollexLinkedListTest {
 
   /**
@@ -31,12 +46,8 @@ class MpCoollexLinkedListTest {
   @MethodSource
   void multisetPermutations(
       Comparable<Object>[] multiset, Comparable<Object>[][] expectedPermutations, Order order) {
-
-    // MpCoollexLinkedList.multisetPermutations(T[]) generates permutations in the order given
-    // in Section 3, Algorithms, page 992. `rot1` translates from Cool-lex to that order.
-    if (Order.COOL_LEX == order) {
-      rot1(expectedPermutations);
-    }
+    // multisetPermutations(T[]) generation order is per Section 3, Algorithms, page 992.
+    order.toSection3Algorithms(expectedPermutations);
 
     Object[] actualPermutations =
         stream(MpCoollexLinkedList.multisetPermutations(multiset))
@@ -46,20 +57,37 @@ class MpCoollexLinkedListTest {
     assertArrayEquals(expectedPermutations, actualPermutations);
   }
 
-  // Given a deque d: d.addFirst( d.removeLast )
-  private static void rot1(Object[] a) {
-    for (int i = a.length - 1; i > 0; ) {
-      Object t = a[i];
-      a[i] = a[--i];
-      a[i] = t;
-    }
+  @ParameterizedTest
+  @MethodSource("multisetPermutations")
+  void multisetPermutationsSpliterator(
+      Comparable<Object>[] multiset, Comparable<Object>[][] expectedPermutations, Order order) {
+    // multisetPermutationsSpliterator(T[]) generation order is per Section 3, Algorithms, page 992.
+    order.toSection3Algorithms(expectedPermutations);
+
+    Object[] actualPermutations =
+        stream(MpCoollexLinkedList.multisetPermutationsSpliterator(multiset, mCoeff -> -1L))
+            .map(permutation -> stream(permutation).toArray())
+            .toArray();
+
+    assertArrayEquals(expectedPermutations, actualPermutations);
   }
 
-  private static <E> Stream<E> stream(Iterator<E> i) {
-    return StreamSupport.stream(
-        Spliterators.spliteratorUnknownSize(i, Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
+  @ParameterizedTest
+  @MethodSource("multisetPermutations")
+  void multisetPermutationsSeq(
+      Comparable<Object>[] multiset, Comparable<Object>[][] expectedPermutations, Order order) {
+    // multisetPermutationsSeq(T[]) generation order is per Section 3, Algorithms, page 992.
+    order.toSection3Algorithms(expectedPermutations);
+
+    Object[] actualPermutations =
+        stream(MpCoollexLinkedList.multisetPermutationsSeq(multiset))
+            .map(permutation -> stream(permutation).toArray())
+            .toArray();
+
+    assertArrayEquals(expectedPermutations, actualPermutations);
   }
 
+  // supplies test vectors to test methods
   private static Stream<Arguments> multisetPermutations() {
     return Stream.of(
             w(MpCoollexLinkedListTest::publicationTestVector),
@@ -90,11 +118,32 @@ class MpCoollexLinkedListTest {
 
   /** Ordering options for test vectors to describe multiset permutations. */
   private enum Order {
+
     /** Permutations are described in strict Cool-lex order. */
-    COOL_LEX,
+    COOL_LEX(
+        // rotate to the right by one position
+        a -> {
+          for (int i = a.length - 1; i > 0; ) {
+            Object t = a[i];
+            a[i] = a[--i];
+            a[i] = t;
+          }
+        }) {},
 
     /** Permutations are described in a modified Cool-lex order: Section 3, Algorithms, p. 922. */
-    SECTION_3_ALGORITHMS;
+    SECTION_3_ALGORITHMS(
+        // no-op
+        a -> {});
+
+    private final Consumer<Object[]> toSection3Algorithms;
+
+    private Order(Consumer<Object[]> toSection3Algorithms) {
+      this.toSection3Algorithms = toSection3Algorithms;
+    }
+
+    void toSection3Algorithms(Object[] permutations) {
+      toSection3Algorithms.accept(permutations);
+    }
   }
 
   // A test vector can send data multiple times, so the order of sending is used to match a multiset
@@ -240,5 +289,41 @@ class MpCoollexLinkedListTest {
           {'B', 'A', 'A'},
         },
         Order.COOL_LEX);
+  }
+
+  //
+  // Helpers
+  //
+
+  // stream from iterator
+  private static <E> Stream<E> stream(Iterator<E> i) {
+    return StreamSupport.stream(
+        Spliterators.spliteratorUnknownSize(i, Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
+  }
+
+  // stream from spliterator
+  private static <E> Stream<E> stream(Spliterator<E> s) {
+    return StreamSupport.stream(s, false);
+  }
+
+  // stream from sequence
+  // not particularly useful
+  // added here for symmetry of test-method code, and potential test-method unification
+  private static <E> Stream<E> stream(Seq<E> s) {
+    Stream.Builder<E> b = Stream.builder();
+    readSequence(s, b::add);
+    return b.build();
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <E> void readSequence(Seq<E> seq, Consumer<E> rcv) {
+    seq.forEach(
+        element ->
+            rcv.accept(element instanceof Seq ? (E) seq(stream((Seq<?>) element)) : element));
+  }
+
+  // seq from stream
+  private static <E> Seq<E> seq(Stream<E> s) {
+    return yield -> s.forEach(yield::test); // Java9+: s.takeWhile(yield::test).forEach(e->{});
   }
 }
