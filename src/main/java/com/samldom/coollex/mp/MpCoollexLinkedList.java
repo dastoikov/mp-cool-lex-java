@@ -281,7 +281,8 @@ public class MpCoollexLinkedList {
    *
    * @param multiset to permute. <strong>Note</strong>: it may be modified by this method.
    * @param supplyMultinomialCoefficient supplier of an accurate value for {@code C(n; k1, k2, ...,
-   *     km)}, or any non-positive integer if the calculation would be too expensive.
+   *     km)}, or any non-positive integer if: the computation would be too expensive, the result
+   *     would be too large to fit in a long, etc.
    * @return an empty spliterator if the multiset is empty; the generated permutations otherwise.
    */
   public static <T extends Comparable<? super T>>
@@ -299,55 +300,57 @@ public class MpCoollexLinkedList {
   // mSize: size of multiset permutations spliterators
   private static <T extends Comparable<? super T>> Spliterator<Spliterator<T>> coollexSpliterator(
       long pSize, long mpSize, Algorithm<T> coollex) {
-    Supplier<CoollexSpliterator<T>> elementsSpliterator =
+    Supplier<Predicate<Consumer<? super T>>> pAdvancer =
         () -> {
           Mut<Node<T>> curr = Mut.of(coollex.h);
-          return new CoollexSpliterator<>(
-              pSize,
-              rcv -> {
-                if (curr.e == null) {
-                  return false;
-                }
-                rcv.accept(curr.e.value);
-                curr.e = curr.e.next;
-                return true;
-              });
+          return rcv -> {
+            if (curr.e == null) {
+              return false;
+            }
+            rcv.accept(curr.e.value);
+            curr.e = curr.e.next;
+            return true;
+          };
         };
-    Mut<Boolean> first = Mut.of(false);
-    return new CoollexSpliterator<>(
-        mpSize,
+    Mut<Boolean> subsq = Mut.of(false); // first or subsequent?
+    Predicate<Consumer<? super Spliterator<T>>> mpAdvancer =
         rcv -> {
-          if (!first.e) {
-            rcv.accept(elementsSpliterator.get());
-            return first.e = true;
+          if (subsq.e) {
+            if (!coollex.hasNext()) {
+              return false;
+            }
+            coollex.next();
           }
-          if (!coollex.hasNext()) {
-            return false;
-          }
-          coollex.next();
-          rcv.accept(elementsSpliterator.get());
-          return true;
-        });
+          rcv.accept(CoollexSpliterator.sized(pSize, pAdvancer.get()));
+          return subsq.e = true;
+        };
+    return mpSize <= 0
+        ? CoollexSpliterator.unsized(mpAdvancer)
+        : CoollexSpliterator.sized(mpSize, mpAdvancer);
   }
 
   private static class CoollexSpliterator<T> implements Spliterator<T> {
     private static final int DEFAULT_CHARACTERISTICS = ORDERED | IMMUTABLE;
+    private static final int ALSO_SIZED = DEFAULT_CHARACTERISTICS | SIZED;
 
     final long size;
     final Predicate<Consumer<? super T>> advancer;
     final int characteristics;
 
-    CoollexSpliterator(long wantedSize, Predicate<Consumer<? super T>> advancer) {
+    CoollexSpliterator(long size, Predicate<Consumer<? super T>> advancer, int characteristics) {
+      this.size = size;
       this.advancer = advancer;
+      this.characteristics = characteristics;
+    }
 
-      // non<=0 if the computation is too expensive or the result is too large
-      if (wantedSize <= 0) {
-        size = Long.MAX_VALUE;
-        characteristics = DEFAULT_CHARACTERISTICS;
-      } else {
-        size = wantedSize;
-        characteristics = DEFAULT_CHARACTERISTICS | SIZED;
-      }
+    // Returns a sized spliterator. Contract: size is strictly positive; advancer is non-null.
+    static <T> Spliterator<T> sized(long size, Predicate<Consumer<? super T>> advancer) {
+      return new CoollexSpliterator<>(size, advancer, ALSO_SIZED);
+    }
+
+    // Returns a spliterator of an unknown size; Contract: advancer is non-null;
+    static <T> Spliterator<T> unsized(Predicate<Consumer<? super T>> advancer) {
+      return new CoollexSpliterator<>(Long.MAX_VALUE, advancer, DEFAULT_CHARACTERISTICS);
     }
 
     @Override
