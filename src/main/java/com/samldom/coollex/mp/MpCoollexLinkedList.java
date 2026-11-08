@@ -261,7 +261,7 @@ public class MpCoollexLinkedList {
 
   private static <T extends Comparable<? super T>> Seq<T> elementsSeq(Node<T> from) {
     return yield -> {
-      for (Node<T> curr = from; curr != null && yield.test(curr.value); curr = curr.next)
+      for (Node<T> curr = from; yield.test(curr.value) && (curr = curr.next) != null; )
         ;
     };
   }
