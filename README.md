@@ -70,6 +70,14 @@ MpCoollexLinkedList.multisetPermutationsSeq(multiset)
         });
 ```
 
+# Notes
+
+On my machine, iteratively consuming all elements of all permutations, benchmarking shows:
+ 1. [Go-style](https://pkg.go.dev/iter) iterators are 2.09 *times* faster than standard iterators,
+ 2. Go-style iterators are 2.92 *times* faster than the internal spliterators,
+ 3. Go-style iterators are 1.85 *times* faster than standard spliterators, the latter
+being faster than both standard iterators and internal spliterators.
+
 ## Dependencies
 
 Java 8.
