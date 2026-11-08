@@ -58,7 +58,7 @@ MpCoollexLinkedList.multisetPermutationsSpliterator(multiset, multinomialCoeff->
         });
 ```
 
-Finally, [Golang-style](https://pkg.go.dev/iter) iterators:
+Finally, [Go-style](https://pkg.go.dev/iter) iterators:
 
 ```java
 Integer[] multiset = {1, 5, 1};
