@@ -49,8 +49,7 @@ If `java.util.Iterator` is preferred:
 If `java.util.Spliterator` is preferred:
 
 ```java
-Integer[] multiset = {1, 5, 1};
-MpCoollexLinkedList.multisetPermutationsSpliterator(multiset, multinomialCoeff->-1L)
+MpCoollexLinkedList.multisetPermutationsSpliterator(multiset, multinomialCoeff -> 0L)
     .forEachRemaining(
         permutation -> {
           permutation.forEachRemaining(System.out::print);
@@ -58,10 +57,10 @@ MpCoollexLinkedList.multisetPermutationsSpliterator(multiset, multinomialCoeff->
         });
 ```
 
-Finally, [Go-style](https://pkg.go.dev/iter) iterators:
+Finally, Go-style iterators (in Go: [pkg.go.dev/iter](https://pkg.go.dev/iter),
+and in here: [Seq.java](./src/main/java/com/samldom/util/iter/Seq.java)):
 
 ```java
-Integer[] multiset = {1, 5, 1};
 MpCoollexLinkedList.multisetPermutationsSeq(multiset)
     .forEach(
         permutation -> {
@@ -69,14 +68,6 @@ MpCoollexLinkedList.multisetPermutationsSeq(multiset)
           System.out.println();
         });
 ```
-
-# Notes
-
-On my machine, iteratively consuming all elements of all permutations, benchmarking shows:
- 1. [Go-style](https://pkg.go.dev/iter) iterators are 2.09 *times* faster than standard iterators,
- 2. Go-style iterators are 2.92 *times* faster than the internal spliterators,
- 3. Go-style iterators are 1.85 *times* faster than standard spliterators, the latter
-being faster than both standard iterators and internal spliterators.
 
 ## Dependencies
 

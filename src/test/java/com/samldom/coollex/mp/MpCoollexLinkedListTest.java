@@ -128,7 +128,7 @@ class MpCoollexLinkedListTest {
             a[i] = a[--i];
             a[i] = t;
           }
-        }) {},
+        }),
 
     /** Permutations are described in a modified Cool-lex order: Section 3, Algorithms, p. 922. */
     SECTION_3_ALGORITHMS(
