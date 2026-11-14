@@ -297,8 +297,7 @@ class MpCoollexLinkedListTest {
 
   // stream from iterator
   private static <E> Stream<E> stream(Iterator<E> i) {
-    return StreamSupport.stream(
-        Spliterators.spliteratorUnknownSize(i, Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(i, Spliterator.ORDERED), false);
   }
 
   // stream from spliterator

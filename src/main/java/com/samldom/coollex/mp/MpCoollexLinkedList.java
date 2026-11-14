@@ -260,7 +260,7 @@ public class MpCoollexLinkedList {
   }
 
   private static <T extends Comparable<? super T>> Seq<T> elementsSeq(Node<T> from) {
-    return yield -> {
+    return yield -> { // assert from != null
       for (Node<T> curr = from; yield.test(curr.value) && (curr = curr.next) != null; )
         ;
     };
@@ -272,8 +272,7 @@ public class MpCoollexLinkedList {
    * p. 992. This order differs from Cool-lex in that the Cool-lex' last permutation is generated
    * first. See {@link #multisetPermutations(Comparable[])} for details.
    *
-   * <p>The spliterators are {@link Spliterator#ORDERED ordered} and {@link Spliterator#IMMUTABLE
-   * immutable}.
+   * <p>The spliterators are {@link Spliterator#ORDERED ordered}.
    *
    * <p>Permutation spliterators are, in addition, {@link Spliterator#SIZED sized}. Multiset
    * permutations spliterators will be sized if the value of the multinomial coefficient supplied is
@@ -330,7 +329,7 @@ public class MpCoollexLinkedList {
   }
 
   private static class CoollexSpliterator<T> implements Spliterator<T> {
-    private static final int DEFAULT_CHARACTERISTICS = ORDERED | IMMUTABLE;
+    private static final int DEFAULT_CHARACTERISTICS = ORDERED;
     private static final int ALSO_SIZED = DEFAULT_CHARACTERISTICS | SIZED;
 
     final long size;
